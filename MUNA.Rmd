@@ -1,0 +1,166 @@
+---
+title: "Informe del proyecto Museo Nacional (MUNA)"
+author: "Hernan Perci Nuñez Palomino"
+date: "Última edición `r format(Sys.time(), '%d %B %Y')`"
+output: 
+    word_document:
+      reference_docx: "template.docx"
+---
+
+\listoffigures
+\listoftables
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+El Museo Nacional del Perú – MUNA [Pagina Web](https://muna.cultura.pe/) es una de las obras más emblemáticas del Estado Peruano realizada por el Ministerio de Cultura.
+
+![](002_MNP_Explanada_1.jpg)
+
+# Finalidad del estudio
+
+Se busca tener una perspectiva más amplia de las apreciaciones y expectativas por parte del público objetivo queriendo llegar a tener una reflexión objetiva de acuerdo a las respuestas de las preguntas seleccionadas, las cuales nos ayudara a direccionar las estrategias de comunicación para el museo.
+
+# Paquetes usados en el desarrollo del informe
+
+Son paquetes de funciones desarrolladas por otros autores para el rápido manejo de los análisis.
+
+```{r}
+
+library(readxl)
+library(tidyverse)
+library(knitr)
+library(skimr)
+
+```
+
+
+# Estructura de la información recopilada
+
+* Se recopila la información de las diversas fuentes y se genera un marco único de trabajo.
+* Se asignan los nombres de las variables de acuerdo al número de pregunta en el cuestionario. 
+
+## Marco inicial de la información recopilada
+
+Se procede a unir las fuentes de datos procedentes de los 43 distritos de Lima Metropolitana.
+
+```{r SUR}
+SUR <- read_excel("Base de datos SUR.xlsx") # accedemos al excel
+SUR <- SUR[2:nrow(SUR),] # elejimos la data
+colnames(SUR) <- c(paste(replicate(n = 205, "Var_"), 1:205, sep = "")) # le asignamos nombres previos a las columnas
+```
+
+
+```{r DEMAS}
+# de igual manera que con la data SUR
+DEMAS <- read_excel("base de datos lima excepto sur 16_08.xlsx")
+DEMAS <- DEMAS[2:nrow(DEMAS),]
+colnames(DEMAS) <- c(paste(replicate(n = 205, "Var_"), 1:205, sep = ""))
+```
+
+
+```{r MUNA}
+MUNA <- bind_rows(SUR, DEMAS) # juntamos la información recopilada
+
+```
+
+La data `MUNA` contiene la información recopilada en las encuestas.
+
+## Marco final de la informació recopilada
+
+Se modifican los nombres y los tipos de variables.
+
+```{r}
+#Var_1
+colnames(MUNA)[1] <- "ID"
+MUNA$ID <- as.character(MUNA$ID)
+#Var_2
+colnames(MUNA)[2] <- "ID_Aplicador"
+MUNA$ID_Aplicador <- as.factor(MUNA$ID_Aplicador)
+#Var_3
+colnames(MUNA)[3] <- "Aplicador"
+MUNA$Aplicador <- as.factor(MUNA$Aplicador)
+#Var_4
+colnames(MUNA)[4] <- "Inicio"
+MUNA$Inicio <- as.POSIXct(MUNA$Inicio)
+#Var_5
+colnames(MUNA)[5] <- "Fin"
+MUNA$Fin <- as.POSIXct(MUNA$Fin)
+#Var_6
+colnames(MUNA)[6] <- "IP"
+MUNA$IP <- as.factor(MUNA$IP)
+#Var_7
+colnames(MUNA)[7] <- "Email"
+MUNA$Email <- as.character(MUNA$Email)
+#Var_8
+colnames(MUNA)[8] <- "Nombre"
+MUNA$Nombre <- as.character(MUNA$Nombre)
+#Var_9
+colnames(MUNA)[9] <- "Apellido"
+MUNA$Apellido <- as.character(MUNA$Apellido)
+#Var_10
+colnames(MUNA)[10] <- "Cliente"
+MUNA$Cliente <- as.character(MUNA$Cliente)
+#Var_11
+colnames(MUNA)[11] <- "Cod_Mz"
+MUNA$Cod_Mz <- as.factor(MUNA$Cod_Mz)
+#Var_12
+colnames(MUNA)[12] <- "Preg1"
+MUNA$Preg1 <- as.factor(MUNA$Preg1)
+#Var_13
+colnames(MUNA)[13] <- "Preg2_1"
+MUNA$Preg2_1 <- as.factor(MUNA$Preg2_1)
+#Var_14
+colnames(MUNA)[14] <- "Preg2_2"
+MUNA$Preg2_2 <- as.factor(MUNA$Preg2_2)
+#Var_15
+colnames(MUNA)[15] <- "Preg2_3"
+MUNA$Preg2_3 <- as.factor(MUNA$Preg2_3)
+#Var_16
+colnames(MUNA)[16] <- "Preg3"
+MUNA$Preg3 <- as.integer(MUNA$Preg3)
+#Var_17
+colnames(MUNA)[17] <- "Preg4"
+MUNA$Preg4 <- as.factor(MUNA$Preg4)
+#Var_18
+colnames(MUNA)[18] <- "Preg4_Otro"
+MUNA$Preg4_Otro <- as.factor(MUNA$Preg4_Otro)
+#Var_19
+colnames(MUNA)[19] <- "Preg5"
+MUNA$Preg5 <- as.factor(MUNA$Preg5)
+#Var_20
+colnames(MUNA)[20] <- "Preg6_1"
+MUNA$Preg6_1 <- as.factor(MUNA$Preg6_1)
+#Var_21
+colnames(MUNA)[21] <- "Preg6_2"
+MUNA$Preg6_2 <- as.factor(MUNA$Preg6_2)
+#Var_22
+colnames(MUNA)[22] <- "Preg6_3"
+MUNA$Preg6_3 <- as.factor(MUNA$Preg6_3)
+#Var_23
+colnames(MUNA)[23] <- "Preg6_4"
+MUNA$Preg6_4 <- as.factor(MUNA$Preg6_4)
+#Var_24
+colnames(MUNA)[24] <- "Preg6_5"
+MUNA$Preg6_5 <- as.factor(MUNA$Preg6_5)
+#Var_25
+colnames(MUNA)[25] <-"Preg6_6"
+MUNA$Preg6_6 <- as.factor(MUNA$Preg6_6)
+#Var_26
+colnames(MUNA)[26] <- "Preg6_7"
+MUNA$Preg6_7 <- as.factor(MUNA$Preg6_7)
+#Var_27
+colnames(MUNA)[27] <- "Preg6_8"
+MUNA$Preg6_8 <- as.factor(MUNA$Preg6_8)
+
+```
+
+
+# Preguntas de filtro
+Son las preguntas que se le debe de hacer para proseguir con la encuesta. Se de be tener puras afirmativas
+
+## ¿Usted tiene hijos y/o hijas en edad escolar (6 a 17 años)?
+
+
+
