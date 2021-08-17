@@ -26,7 +26,7 @@ Se busca tener una perspectiva más amplia de las apreciaciones y expectativas p
 
 Son paquetes de funciones desarrolladas por otros autores para el rápido manejo de los análisis.
 
-```{r}
+```{r librerias}
 
 library(readxl)
 library(tidyverse)
@@ -69,18 +69,20 @@ La data `MUNA` contiene la información recopilada en las encuestas.
 
 ## Marco final de la informació recopilada
 
-Se modifican los nombres y los tipos de variables.
+Se modifican los nombres y los tipos de todas las variables.
 
-```{r}
+### Variables iniciales
+
+```{r modificacion_variables_iniciales}
 #Var_1
 colnames(MUNA)[1] <- "ID"
 MUNA$ID <- as.character(MUNA$ID)
 #Var_2
 colnames(MUNA)[2] <- "ID_Aplicador"
-MUNA$ID_Aplicador <- as.factor(MUNA$ID_Aplicador)
+MUNA$ID_Aplicador <- factor(MUNA$ID_Aplicador)
 #Var_3
 colnames(MUNA)[3] <- "Aplicador"
-MUNA$Aplicador <- as.factor(MUNA$Aplicador)
+MUNA$Aplicador <- factor(MUNA$Aplicador)
 #Var_4
 colnames(MUNA)[4] <- "Inicio"
 MUNA$Inicio <- as.POSIXct(MUNA$Inicio)
@@ -89,7 +91,7 @@ colnames(MUNA)[5] <- "Fin"
 MUNA$Fin <- as.POSIXct(MUNA$Fin)
 #Var_6
 colnames(MUNA)[6] <- "IP"
-MUNA$IP <- as.factor(MUNA$IP)
+MUNA$IP <- factor(MUNA$IP)
 #Var_7
 colnames(MUNA)[7] <- "Email"
 MUNA$Email <- as.character(MUNA$Email)
@@ -104,58 +106,268 @@ colnames(MUNA)[10] <- "Cliente"
 MUNA$Cliente <- as.character(MUNA$Cliente)
 #Var_11
 colnames(MUNA)[11] <- "Cod_Mz"
-MUNA$Cod_Mz <- as.factor(MUNA$Cod_Mz)
+MUNA$Cod_Mz <- factor(MUNA$Cod_Mz)
+
+```
+
+
+### Variables filtro
+
+```{r modificacion_variables_filtro}
 #Var_12
 colnames(MUNA)[12] <- "Preg1"
-MUNA$Preg1 <- as.factor(MUNA$Preg1)
+MUNA$Preg1 <- factor(MUNA$Preg1)
 #Var_13
 colnames(MUNA)[13] <- "Preg2_1"
-MUNA$Preg2_1 <- as.factor(MUNA$Preg2_1)
+MUNA$Preg2_1 <- factor(MUNA$Preg2_1)
 #Var_14
 colnames(MUNA)[14] <- "Preg2_2"
-MUNA$Preg2_2 <- as.factor(MUNA$Preg2_2)
+MUNA$Preg2_2 <- factor(MUNA$Preg2_2)
 #Var_15
 colnames(MUNA)[15] <- "Preg2_3"
-MUNA$Preg2_3 <- as.factor(MUNA$Preg2_3)
+MUNA$Preg2_3 <- factor(MUNA$Preg2_3)
+```
+
+
+### Variables sociodemograficos
+
+```{r modificacion_variables_sociodemograficos}
 #Var_16
 colnames(MUNA)[16] <- "Preg3"
 MUNA$Preg3 <- as.integer(MUNA$Preg3)
 #Var_17
 colnames(MUNA)[17] <- "Preg4"
-MUNA$Preg4 <- as.factor(MUNA$Preg4)
+MUNA$Preg4 <- factor(MUNA$Preg4)
 #Var_18
 colnames(MUNA)[18] <- "Preg4_Otro"
-MUNA$Preg4_Otro <- as.factor(MUNA$Preg4_Otro)
+MUNA$Preg4_Otro <- factor(MUNA$Preg4_Otro)
 #Var_19
 colnames(MUNA)[19] <- "Preg5"
-MUNA$Preg5 <- as.factor(MUNA$Preg5)
+MUNA$Preg5 <- factor(MUNA$Preg5)
 #Var_20
 colnames(MUNA)[20] <- "Preg6_1"
-MUNA$Preg6_1 <- as.factor(MUNA$Preg6_1)
+MUNA$Preg6_1 <- factor(MUNA$Preg6_1)
 #Var_21
 colnames(MUNA)[21] <- "Preg6_2"
-MUNA$Preg6_2 <- as.factor(MUNA$Preg6_2)
+MUNA$Preg6_2 <- factor(MUNA$Preg6_2)
 #Var_22
 colnames(MUNA)[22] <- "Preg6_3"
-MUNA$Preg6_3 <- as.factor(MUNA$Preg6_3)
+MUNA$Preg6_3 <- factor(MUNA$Preg6_3)
 #Var_23
 colnames(MUNA)[23] <- "Preg6_4"
-MUNA$Preg6_4 <- as.factor(MUNA$Preg6_4)
+MUNA$Preg6_4 <- factor(MUNA$Preg6_4)
 #Var_24
 colnames(MUNA)[24] <- "Preg6_5"
-MUNA$Preg6_5 <- as.factor(MUNA$Preg6_5)
+MUNA$Preg6_5 <- factor(MUNA$Preg6_5)
 #Var_25
 colnames(MUNA)[25] <-"Preg6_6"
-MUNA$Preg6_6 <- as.factor(MUNA$Preg6_6)
+MUNA$Preg6_6 <- factor(MUNA$Preg6_6)
 #Var_26
 colnames(MUNA)[26] <- "Preg6_7"
-MUNA$Preg6_7 <- as.factor(MUNA$Preg6_7)
+MUNA$Preg6_7 <- factor(MUNA$Preg6_7)
 #Var_27
 colnames(MUNA)[27] <- "Preg6_8"
-MUNA$Preg6_8 <- as.factor(MUNA$Preg6_8)
+MUNA$Preg6_8 <- factor(MUNA$Preg6_8)
+#Var_28
+colnames(MUNA)[28] <- "Preg7"
+MUNA$Preg7 <- factor(MUNA$Preg7)
+#Var_29
+colnames(MUNA)[29] <- "Preg7_Otro"
+MUNA$Preg7_Otro <- factor(MUNA$Preg7_Otro)
+#Var_30
+colnames(MUNA)[30] <- "Preg8"
+MUNA$Preg8 <- factor(MUNA$Preg8, levels = c("Tengo más de un trabajo a la vez", "Trabajador Part- Time (4 Horas x 6 dias o 24 horas semanales)", "Trabajador Middle- Time (6 Horas x 6 Dias o 36 horas semanales)", "Trabajador Full-Time (8 Horas x 6 dias o 48 horas semanales)"))
+#Var_31
+colnames(MUNA)[31] <- "Preg9"
+MUNA$Preg9 <- factor(MUNA$Preg9, levels = c("Ningún grado de instrucción", "Inicial", "Primaria", "Secundaria", "Superior Técnico", "Superior Universitario", "Postgrado"))
+```
+
+
+### Variables de identidad de genero y cultural
+
+```{r modificacion_variables_identidad_genero_cultura}
+#Var_32
+colnames(MUNA)[32] <- "Preg10"
+MUNA$Preg10 <- factor(MUNA$Preg10)
+#Var_33
+colnames(MUNA)[33] <- "Preg10_Otro"
+MUNA$Preg10_Otro <- factor(MUNA$Preg10_Otro)
+#Var_34
+colnames(MUNA)[34] <- "Preg11"
+MUNA$Preg11 <- factor(MUNA$Preg11)
+#Var_35
+colnames(MUNA)[35] <- "Preg11_Otro"
+MUNA$Preg11_Otro <- factor(MUNA$Preg11_Otro)
+```
+
+
+### Variables de gustos y preferencias sobre consumo cultural
+
+```{r modificacion_variables_gustos_preferencias}
+
+#Var_36
+colnames(MUNA)[36] <- "Preg12"
+MUNA$Preg12 <- factor(MUNA$Preg12, levels = c("Nada importante", "No es importante", "Medianamente importante", "Importante", "Muy importante"))
+#Var_37
+colnames(MUNA)[37] <- "Preg13"
+MUNA$Preg13 <- factor(MUNA$Preg13)
+#Var_38
+colnames(MUNA)[38] <- "Preg14_13Si"
+MUNA$Preg14_13Si <- factor(MUNA$Preg14_13Si)
+#Var_39
+colnames(MUNA)[39] <- "Preg15_1_13Si_14Si"
+MUNA$Preg15_1_13Si_14Si <- factor(MUNA$Preg15_1_13Si_14Si)
+#Var_40
+colnames(MUNA)[40] <- "Preg15_2_13Si_14Si"
+MUNA$Preg15_2_13Si_14Si <- factor(MUNA$Preg15_2_13Si_14Si)
+#Var_41
+colnames(MUNA)[41] <- "Preg15_3_13Si_14Si"
+MUNA$Preg15_3_13Si_14Si <- factor(MUNA$Preg15_3_13Si_14Si)
+#Var_42
+colnames(MUNA)[42] <- "Preg15_4_13Si_14Si"
+MUNA$Preg15_4_13Si_14Si <- factor(MUNA$Preg15_4_13Si_14Si)
+#Var_43
+colnames(MUNA)[43] <- "Preg15_5_13Si_14Si"
+MUNA$Preg15_5_13Si_14Si <- factor(MUNA$Preg15_5_13Si_14Si)
+#Var_44
+colnames(MUNA)[44] <- "Preg15_6_13Si_14Si"
+MUNA$Preg15_6_13Si_14Si <- factor(MUNA$Preg15_6_13Si_14Si)
+#Var_45
+colnames(MUNA)[45] <- "Preg15_7_13Si_14Si"
+MUNA$Preg15_7_13Si_14Si <- factor(MUNA$Preg15_7_13Si_14Si)
+#Var_46
+colnames(MUNA)[46] <- "Preg15_8_13Si_14Si"
+MUNA$Preg15_8_13Si_14Si <- factor(MUNA$Preg15_8_13Si_14Si)
+#Var_47
+colnames(MUNA)[47] <- "Preg15_9_13Si_14Si"
+MUNA$Preg15_9_13Si_14Si <- factor(MUNA$Preg15_9_13Si_14Si)
+#Var_48
+colnames(MUNA)[48] <- "Preg15_10_13Si_14Si"
+MUNA$Preg15_10_13Si_14Si <- factor(MUNA$Preg15_10_13Si_14Si)
+#Var_49
+colnames(MUNA)[49] <- "Preg15_11_13Si_14Si"
+MUNA$Preg15_11_13Si_14Si <- factor(MUNA$Preg15_11_13Si_14Si)
+#Var_50
+colnames(MUNA)[50] <- "Preg16_1_13Si_14Si"
+MUNA$Preg16_1_13Si_14Si <- factor(MUNA$Preg16_1_13Si_14Si)
+#Var_51
+colnames(MUNA)[51] <- "Preg16_2_13Si_14Si"
+MUNA$Preg16_2_13Si_14Si <- factor(MUNA$Preg16_2_13Si_14Si)
+#Var_52
+colnames(MUNA)[52] <- "Preg16_3_13Si_14Si"
+MUNA$Preg16_3_13Si_14Si <- factor(MUNA$Preg16_3_13Si_14Si)
+#Var_53
+colnames(MUNA)[53] <- "Preg16_4_13Si_14Si"
+MUNA$Preg16_4_13Si_14Si <- factor(MUNA$Preg16_4_13Si_14Si)
+#Var_54
+colnames(MUNA)[54] <- "Preg16_5_13Si_14Si"
+MUNA$Preg16_5_13Si_14Si <- factor(MUNA$Preg16_5_13Si_14Si)
+#Var_55
+colnames(MUNA)[55] <- "Preg16_6_13Si_14Si"
+MUNA$Preg16_6_13Si_14Si <- factor(MUNA$Preg16_6_13Si_14Si)
+#Var_56
+colnames(MUNA)[56] <- "Preg16_Otro1_13Si_14Si"
+MUNA$Preg16_Otro1_13Si_14Si <- factor(MUNA$Preg16_Otro1_13Si_14Si)
+#Var_57
+colnames(MUNA)[57] <- "Preg16_1_13Si_14No"
+MUNA$Preg16_1_13Si_14No <- factor(MUNA$Preg16_1_13Si_14No)
+#Var_58
+colnames(MUNA)[58] <- "Preg16_2_13Si_14No"
+MUNA$Preg16_2_13Si_14No <- factor(MUNA$Preg16_2_13Si_14No)
+#Var_59
+colnames(MUNA)[59] <- "Preg16_3_13Si_14No"
+MUNA$Preg16_3_13Si_14No <- factor(MUNA$Preg16_3_13Si_14No)
+#Var_60
+colnames(MUNA)[60] <- "Preg16_4_13Si_14No"
+MUNA$Preg16_4_13Si_14No <- factor(MUNA$Preg16_4_13Si_14No)
+#Var_61
+colnames(MUNA)[61] <- "Preg16_5_13Si_14No"
+MUNA$Preg16_5_13Si_14No <- factor(MUNA$Preg16_5_13Si_14No)
+#Var_62
+colnames(MUNA)[62] <- "Preg16_Otro1_13Si_14No"
+MUNA$Preg16_Otro1_13Si_14No <- factor(MUNA$Preg16_Otro1_13Si_14No)
+#Var_63
+colnames(MUNA)[63] <- "Preg17_13Si_14Si"
+MUNA$Preg17_13Si_14Si <- factor(MUNA$Preg17_13Si_14Si)
+#Var_64
+colnames(MUNA)[64] <- "Preg18_13Si_14Si_17Si"
+MUNA$Preg18_13Si_14Si_17Si <- as.numeric(MUNA$Preg18_13Si_14Si_17Si)
+#Var_65
+colnames(MUNA)[65] <- "Preg19_13Si_14Si_17Si"
+MUNA$Preg19_13Si_14Si_17Si <- factor(MUNA$Preg19_13Si_14Si_17Si)
+#Var_66
+colnames(MUNA)[66] <- "Preg20_13Si_14Si_17Si_19Acomp"
+MUNA$Preg20_13Si_14Si_17Si_19Acomp <- as.numeric(MUNA$Preg20_13Si_14Si_17Si_19Acomp)
+#Var_67
+colnames(MUNA)[67] <- "Preg21_1_13Si_14Si_17Si_19Acomp"
+MUNA$Preg21_1_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_1_13Si_14Si_17Si_19Acomp)
+#Var_68
+colnames(MUNA)[68] <- "Preg21_2_13Si_14Si_17Si_19Acomp"
+MUNA$Preg21_2_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_2_13Si_14Si_17Si_19Acomp)
+#Var_69
+colnames(MUNA)[69] <- "Preg21_3_13Si_14Si_17Si_19Acomp"
+MUNA$Preg21_3_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_3_13Si_14Si_17Si_19Acomp)
+#Var_70
+colnames(MUNA)[70] <- "Preg21_4_13Si_14Si_17Si_19Acomp"
+MUNA$Preg21_4_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_4_13Si_14Si_17Si_19Acomp)
+#Var_71
+colnames(MUNA)[71] <- "Preg21_5_13Si_14Si_17Si_19Acomp"
+MUNA$Preg21_5_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_5_13Si_14Si_17Si_19Acomp)
+#Var_72
+colnames(MUNA)[72] <- "Preg20_13Si_14Si_17Si_19Grupo"
+MUNA$Preg20_13Si_14Si_17Si_19Grupo <- as.numeric(MUNA$Preg20_13Si_14Si_17Si_19Grupo)
+#Var_73
+colnames(MUNA)[73] <- "Preg21_1_13Si_14Si_17Si_19Grupo"
+MUNA$Preg21_1_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_1_13Si_14Si_17Si_19Grupo)
+#Var_74
+colnames(MUNA)[74] <- "Preg21_2_13Si_14Si_17Si_19Grupo"
+MUNA$Preg21_2_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_2_13Si_14Si_17Si_19Grupo)
+#Var_75
+colnames(MUNA)[75] <- "Preg21_3_13Si_14Si_17Si_19Grupo"
+MUNA$Preg21_3_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_3_13Si_14Si_17Si_19Grupo)
+#Var_76
+colnames(MUNA)[76] <- "Preg21_Otro_13Si_14Si_17Si_19Grupo"
+MUNA$Preg21_Otro_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_Otro_13Si_14Si_17Si_19Grupo)
+#Var_77
+colnames(MUNA)[77] <- "Preg22_1_13Si_14Si_17Si"
+MUNA$Preg22_1_13Si_14Si_17Si <- factor(MUNA$Preg22_1_13Si_14Si_17Si)
+#Var_78
+colnames(MUNA)[78] <- "Preg22_2_13Si_14Si_17Si"
+MUNA$Preg22_2_13Si_14Si_17Si <- factor(MUNA$Preg22_2_13Si_14Si_17Si)
+#Var_79
+colnames(MUNA)[79] <- "Preg22_3_13Si_14Si_17Si"
+MUNA$Preg22_3_13Si_14Si_17Si <- factor(MUNA$Preg22_3_13Si_14Si_17Si)
+#Var_80
+colnames(MUNA)[80] <- "Preg22_4_13Si_14Si_17Si"
+MUNA$Preg22_4_13Si_14Si_17Si <- factor(MUNA$Preg22_4_13Si_14Si_17Si)
+#Var_81
+colnames(MUNA)[81] <- "Preg22_5_13Si_14Si_17Si"
+MUNA$Preg22_5_13Si_14Si_17Si <- factor(MUNA$Preg22_5_13Si_14Si_17Si)
+#Var_82
+colnames(MUNA)[82] <- "Preg22_6_13Si_14Si_17Si"
+MUNA$Preg22_6_13Si_14Si_17Si <- factor(MUNA$Preg22_6_13Si_14Si_17Si)
+#Var_83
+colnames(MUNA)[83] <- "Preg22_7_13Si_14Si_17Si"
+MUNA$Preg22_7_13Si_14Si_17Si <- factor(MUNA$Preg22_7_13Si_14Si_17Si)
+#Var_84
+colnames(MUNA)[84] <- "Preg22_8_13Si_14Si_17Si"
+MUNA$Preg22_8_13Si_14Si_17Si <- factor(MUNA$Preg22_8_13Si_14Si_17Si)
+#Var_85
+colnames(MUNA)[85] <- "Preg22_9_13Si_14Si_17Si"
+MUNA$Preg22_9_13Si_14Si_17Si <- factor(MUNA$Preg22_9_13Si_14Si_17Si)
+#Var_86
+colnames(MUNA)[86] <- "Preg22_10_13Si_14Si_17Si"
+MUNA$Preg22_10_13Si_14Si_17Si <- factor(MUNA$Preg22_10_13Si_14Si_17Si)
+#Var_87
+colnames(MUNA)[87] <- "Preg22_Otro_13Si_14Si_17Si"
+MUNA$Preg22_Otro_13Si_14Si_17Si <- factor(MUNA$Preg22_Otro_13Si_14Si_17Si)
+
 
 ```
 
+
+# Resumenes iniciales
+Pertenecen aca las variables creadas por el surveymonkey al usar la encuesta.
 
 # Preguntas de filtro
 Son las preguntas que se le debe de hacer para proseguir con la encuesta. Se de be tener puras afirmativas
