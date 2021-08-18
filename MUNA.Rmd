@@ -32,342 +32,144 @@ library(readxl)
 library(tidyverse)
 library(knitr)
 library(skimr)
-
+library(naniar)
+library(VIM)
+library(ggthemes)
 ```
 
 
 # Estructura de la información recopilada
 
-* Se recopila la información de las diversas fuentes y se genera un marco único de trabajo.
-* Se asignan los nombres de las variables de acuerdo al número de pregunta en el cuestionario. 
-
-## Marco inicial de la información recopilada
-
-Se procede a unir las fuentes de datos procedentes de los 43 distritos de Lima Metropolitana.
+Se recopila la información de las diversas fuentes y se genera un marco único de trabajo.
 
 ```{r SUR}
+
 SUR <- read_excel("Base de datos SUR.xlsx") # accedemos al excel
 SUR <- SUR[2:nrow(SUR),] # elejimos la data
 colnames(SUR) <- c(paste(replicate(n = 205, "Var_"), 1:205, sep = "")) # le asignamos nombres previos a las columnas
+
 ```
 
 
 ```{r DEMAS}
+
 # de igual manera que con la data SUR
 DEMAS <- read_excel("base de datos lima excepto sur 16_08.xlsx")
 DEMAS <- DEMAS[2:nrow(DEMAS),]
 colnames(DEMAS) <- c(paste(replicate(n = 205, "Var_"), 1:205, sep = ""))
-```
-
-
-```{r MUNA}
-MUNA <- bind_rows(SUR, DEMAS) # juntamos la información recopilada
 
 ```
 
 La data `MUNA` contiene la información recopilada en las encuestas.
 
-## Marco final de la informació recopilada
+```{r MUNA}
 
-Se modifican los nombres y los tipos de todas las variables.
-
-### Variables iniciales
-
-```{r modificacion_variables_iniciales}
-#Var_1
-colnames(MUNA)[1] <- "ID"
-MUNA$ID <- as.character(MUNA$ID)
-#Var_2
-colnames(MUNA)[2] <- "ID_Aplicador"
-MUNA$ID_Aplicador <- factor(MUNA$ID_Aplicador)
-#Var_3
-colnames(MUNA)[3] <- "Aplicador"
-MUNA$Aplicador <- factor(MUNA$Aplicador)
-#Var_4
-colnames(MUNA)[4] <- "Inicio"
-MUNA$Inicio <- as.POSIXct(MUNA$Inicio)
-#Var_5
-colnames(MUNA)[5] <- "Fin"
-MUNA$Fin <- as.POSIXct(MUNA$Fin)
-#Var_6
-colnames(MUNA)[6] <- "IP"
-MUNA$IP <- factor(MUNA$IP)
-#Var_7
-colnames(MUNA)[7] <- "Email"
-MUNA$Email <- as.character(MUNA$Email)
-#Var_8
-colnames(MUNA)[8] <- "Nombre"
-MUNA$Nombre <- as.character(MUNA$Nombre)
-#Var_9
-colnames(MUNA)[9] <- "Apellido"
-MUNA$Apellido <- as.character(MUNA$Apellido)
-#Var_10
-colnames(MUNA)[10] <- "Cliente"
-MUNA$Cliente <- as.character(MUNA$Cliente)
-#Var_11
-colnames(MUNA)[11] <- "Cod_Mz"
-MUNA$Cod_Mz <- factor(MUNA$Cod_Mz)
+MUNA <- bind_rows(SUR, DEMAS) # juntamos la información recopilada
+glimpse(MUNA) # vista previa de las variables
 
 ```
 
-
-### Variables filtro
-
-```{r modificacion_variables_filtro}
-#Var_12
-colnames(MUNA)[12] <- "Preg1"
-MUNA$Preg1 <- factor(MUNA$Preg1)
-#Var_13
-colnames(MUNA)[13] <- "Preg2_1"
-MUNA$Preg2_1 <- factor(MUNA$Preg2_1)
-#Var_14
-colnames(MUNA)[14] <- "Preg2_2"
-MUNA$Preg2_2 <- factor(MUNA$Preg2_2)
-#Var_15
-colnames(MUNA)[15] <- "Preg2_3"
-MUNA$Preg2_3 <- factor(MUNA$Preg2_3)
-```
-
-
-### Variables sociodemograficos
-
-```{r modificacion_variables_sociodemograficos}
-#Var_16
-colnames(MUNA)[16] <- "Preg3"
-MUNA$Preg3 <- as.integer(MUNA$Preg3)
-#Var_17
-colnames(MUNA)[17] <- "Preg4"
-MUNA$Preg4 <- factor(MUNA$Preg4)
-#Var_18
-colnames(MUNA)[18] <- "Preg4_Otro"
-MUNA$Preg4_Otro <- factor(MUNA$Preg4_Otro)
-#Var_19
-colnames(MUNA)[19] <- "Preg5"
-MUNA$Preg5 <- factor(MUNA$Preg5)
-#Var_20
-colnames(MUNA)[20] <- "Preg6_1"
-MUNA$Preg6_1 <- factor(MUNA$Preg6_1)
-#Var_21
-colnames(MUNA)[21] <- "Preg6_2"
-MUNA$Preg6_2 <- factor(MUNA$Preg6_2)
-#Var_22
-colnames(MUNA)[22] <- "Preg6_3"
-MUNA$Preg6_3 <- factor(MUNA$Preg6_3)
-#Var_23
-colnames(MUNA)[23] <- "Preg6_4"
-MUNA$Preg6_4 <- factor(MUNA$Preg6_4)
-#Var_24
-colnames(MUNA)[24] <- "Preg6_5"
-MUNA$Preg6_5 <- factor(MUNA$Preg6_5)
-#Var_25
-colnames(MUNA)[25] <-"Preg6_6"
-MUNA$Preg6_6 <- factor(MUNA$Preg6_6)
-#Var_26
-colnames(MUNA)[26] <- "Preg6_7"
-MUNA$Preg6_7 <- factor(MUNA$Preg6_7)
-#Var_27
-colnames(MUNA)[27] <- "Preg6_8"
-MUNA$Preg6_8 <- factor(MUNA$Preg6_8)
-#Var_28
-colnames(MUNA)[28] <- "Preg7"
-MUNA$Preg7 <- factor(MUNA$Preg7)
-#Var_29
-colnames(MUNA)[29] <- "Preg7_Otro"
-MUNA$Preg7_Otro <- factor(MUNA$Preg7_Otro)
-#Var_30
-colnames(MUNA)[30] <- "Preg8"
-MUNA$Preg8 <- factor(MUNA$Preg8, levels = c("Tengo más de un trabajo a la vez", "Trabajador Part- Time (4 Horas x 6 dias o 24 horas semanales)", "Trabajador Middle- Time (6 Horas x 6 Dias o 36 horas semanales)", "Trabajador Full-Time (8 Horas x 6 dias o 48 horas semanales)"))
-#Var_31
-colnames(MUNA)[31] <- "Preg9"
-MUNA$Preg9 <- factor(MUNA$Preg9, levels = c("Ningún grado de instrucción", "Inicial", "Primaria", "Secundaria", "Superior Técnico", "Superior Universitario", "Postgrado"))
-```
-
-
-### Variables de identidad de genero y cultural
-
-```{r modificacion_variables_identidad_genero_cultura}
-#Var_32
-colnames(MUNA)[32] <- "Preg10"
-MUNA$Preg10 <- factor(MUNA$Preg10)
-#Var_33
-colnames(MUNA)[33] <- "Preg10_Otro"
-MUNA$Preg10_Otro <- factor(MUNA$Preg10_Otro)
-#Var_34
-colnames(MUNA)[34] <- "Preg11"
-MUNA$Preg11 <- factor(MUNA$Preg11)
-#Var_35
-colnames(MUNA)[35] <- "Preg11_Otro"
-MUNA$Preg11_Otro <- factor(MUNA$Preg11_Otro)
-```
-
-
-### Variables de gustos y preferencias sobre consumo cultural
-
-```{r modificacion_variables_gustos_preferencias}
-
-#Var_36
-colnames(MUNA)[36] <- "Preg12"
-MUNA$Preg12 <- factor(MUNA$Preg12, levels = c("Nada importante", "No es importante", "Medianamente importante", "Importante", "Muy importante"))
-#Var_37
-colnames(MUNA)[37] <- "Preg13"
-MUNA$Preg13 <- factor(MUNA$Preg13)
-#Var_38
-colnames(MUNA)[38] <- "Preg14_13Si"
-MUNA$Preg14_13Si <- factor(MUNA$Preg14_13Si)
-#Var_39
-colnames(MUNA)[39] <- "Preg15_1_13Si_14Si"
-MUNA$Preg15_1_13Si_14Si <- factor(MUNA$Preg15_1_13Si_14Si)
-#Var_40
-colnames(MUNA)[40] <- "Preg15_2_13Si_14Si"
-MUNA$Preg15_2_13Si_14Si <- factor(MUNA$Preg15_2_13Si_14Si)
-#Var_41
-colnames(MUNA)[41] <- "Preg15_3_13Si_14Si"
-MUNA$Preg15_3_13Si_14Si <- factor(MUNA$Preg15_3_13Si_14Si)
-#Var_42
-colnames(MUNA)[42] <- "Preg15_4_13Si_14Si"
-MUNA$Preg15_4_13Si_14Si <- factor(MUNA$Preg15_4_13Si_14Si)
-#Var_43
-colnames(MUNA)[43] <- "Preg15_5_13Si_14Si"
-MUNA$Preg15_5_13Si_14Si <- factor(MUNA$Preg15_5_13Si_14Si)
-#Var_44
-colnames(MUNA)[44] <- "Preg15_6_13Si_14Si"
-MUNA$Preg15_6_13Si_14Si <- factor(MUNA$Preg15_6_13Si_14Si)
-#Var_45
-colnames(MUNA)[45] <- "Preg15_7_13Si_14Si"
-MUNA$Preg15_7_13Si_14Si <- factor(MUNA$Preg15_7_13Si_14Si)
-#Var_46
-colnames(MUNA)[46] <- "Preg15_8_13Si_14Si"
-MUNA$Preg15_8_13Si_14Si <- factor(MUNA$Preg15_8_13Si_14Si)
-#Var_47
-colnames(MUNA)[47] <- "Preg15_9_13Si_14Si"
-MUNA$Preg15_9_13Si_14Si <- factor(MUNA$Preg15_9_13Si_14Si)
-#Var_48
-colnames(MUNA)[48] <- "Preg15_10_13Si_14Si"
-MUNA$Preg15_10_13Si_14Si <- factor(MUNA$Preg15_10_13Si_14Si)
-#Var_49
-colnames(MUNA)[49] <- "Preg15_11_13Si_14Si"
-MUNA$Preg15_11_13Si_14Si <- factor(MUNA$Preg15_11_13Si_14Si)
-#Var_50
-colnames(MUNA)[50] <- "Preg16_1_13Si_14Si"
-MUNA$Preg16_1_13Si_14Si <- factor(MUNA$Preg16_1_13Si_14Si)
-#Var_51
-colnames(MUNA)[51] <- "Preg16_2_13Si_14Si"
-MUNA$Preg16_2_13Si_14Si <- factor(MUNA$Preg16_2_13Si_14Si)
-#Var_52
-colnames(MUNA)[52] <- "Preg16_3_13Si_14Si"
-MUNA$Preg16_3_13Si_14Si <- factor(MUNA$Preg16_3_13Si_14Si)
-#Var_53
-colnames(MUNA)[53] <- "Preg16_4_13Si_14Si"
-MUNA$Preg16_4_13Si_14Si <- factor(MUNA$Preg16_4_13Si_14Si)
-#Var_54
-colnames(MUNA)[54] <- "Preg16_5_13Si_14Si"
-MUNA$Preg16_5_13Si_14Si <- factor(MUNA$Preg16_5_13Si_14Si)
-#Var_55
-colnames(MUNA)[55] <- "Preg16_6_13Si_14Si"
-MUNA$Preg16_6_13Si_14Si <- factor(MUNA$Preg16_6_13Si_14Si)
-#Var_56
-colnames(MUNA)[56] <- "Preg16_Otro1_13Si_14Si"
-MUNA$Preg16_Otro1_13Si_14Si <- factor(MUNA$Preg16_Otro1_13Si_14Si)
-#Var_57
-colnames(MUNA)[57] <- "Preg16_1_13Si_14No"
-MUNA$Preg16_1_13Si_14No <- factor(MUNA$Preg16_1_13Si_14No)
-#Var_58
-colnames(MUNA)[58] <- "Preg16_2_13Si_14No"
-MUNA$Preg16_2_13Si_14No <- factor(MUNA$Preg16_2_13Si_14No)
-#Var_59
-colnames(MUNA)[59] <- "Preg16_3_13Si_14No"
-MUNA$Preg16_3_13Si_14No <- factor(MUNA$Preg16_3_13Si_14No)
-#Var_60
-colnames(MUNA)[60] <- "Preg16_4_13Si_14No"
-MUNA$Preg16_4_13Si_14No <- factor(MUNA$Preg16_4_13Si_14No)
-#Var_61
-colnames(MUNA)[61] <- "Preg16_5_13Si_14No"
-MUNA$Preg16_5_13Si_14No <- factor(MUNA$Preg16_5_13Si_14No)
-#Var_62
-colnames(MUNA)[62] <- "Preg16_Otro1_13Si_14No"
-MUNA$Preg16_Otro1_13Si_14No <- factor(MUNA$Preg16_Otro1_13Si_14No)
-#Var_63
-colnames(MUNA)[63] <- "Preg17_13Si_14Si"
-MUNA$Preg17_13Si_14Si <- factor(MUNA$Preg17_13Si_14Si)
-#Var_64
-colnames(MUNA)[64] <- "Preg18_13Si_14Si_17Si"
-MUNA$Preg18_13Si_14Si_17Si <- as.numeric(MUNA$Preg18_13Si_14Si_17Si)
-#Var_65
-colnames(MUNA)[65] <- "Preg19_13Si_14Si_17Si"
-MUNA$Preg19_13Si_14Si_17Si <- factor(MUNA$Preg19_13Si_14Si_17Si)
-#Var_66
-colnames(MUNA)[66] <- "Preg20_13Si_14Si_17Si_19Acomp"
-MUNA$Preg20_13Si_14Si_17Si_19Acomp <- as.numeric(MUNA$Preg20_13Si_14Si_17Si_19Acomp)
-#Var_67
-colnames(MUNA)[67] <- "Preg21_1_13Si_14Si_17Si_19Acomp"
-MUNA$Preg21_1_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_1_13Si_14Si_17Si_19Acomp)
-#Var_68
-colnames(MUNA)[68] <- "Preg21_2_13Si_14Si_17Si_19Acomp"
-MUNA$Preg21_2_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_2_13Si_14Si_17Si_19Acomp)
-#Var_69
-colnames(MUNA)[69] <- "Preg21_3_13Si_14Si_17Si_19Acomp"
-MUNA$Preg21_3_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_3_13Si_14Si_17Si_19Acomp)
-#Var_70
-colnames(MUNA)[70] <- "Preg21_4_13Si_14Si_17Si_19Acomp"
-MUNA$Preg21_4_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_4_13Si_14Si_17Si_19Acomp)
-#Var_71
-colnames(MUNA)[71] <- "Preg21_5_13Si_14Si_17Si_19Acomp"
-MUNA$Preg21_5_13Si_14Si_17Si_19Acomp <- factor(MUNA$Preg21_5_13Si_14Si_17Si_19Acomp)
-#Var_72
-colnames(MUNA)[72] <- "Preg20_13Si_14Si_17Si_19Grupo"
-MUNA$Preg20_13Si_14Si_17Si_19Grupo <- as.numeric(MUNA$Preg20_13Si_14Si_17Si_19Grupo)
-#Var_73
-colnames(MUNA)[73] <- "Preg21_1_13Si_14Si_17Si_19Grupo"
-MUNA$Preg21_1_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_1_13Si_14Si_17Si_19Grupo)
-#Var_74
-colnames(MUNA)[74] <- "Preg21_2_13Si_14Si_17Si_19Grupo"
-MUNA$Preg21_2_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_2_13Si_14Si_17Si_19Grupo)
-#Var_75
-colnames(MUNA)[75] <- "Preg21_3_13Si_14Si_17Si_19Grupo"
-MUNA$Preg21_3_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_3_13Si_14Si_17Si_19Grupo)
-#Var_76
-colnames(MUNA)[76] <- "Preg21_Otro_13Si_14Si_17Si_19Grupo"
-MUNA$Preg21_Otro_13Si_14Si_17Si_19Grupo <- factor(MUNA$Preg21_Otro_13Si_14Si_17Si_19Grupo)
-#Var_77
-colnames(MUNA)[77] <- "Preg22_1_13Si_14Si_17Si"
-MUNA$Preg22_1_13Si_14Si_17Si <- factor(MUNA$Preg22_1_13Si_14Si_17Si)
-#Var_78
-colnames(MUNA)[78] <- "Preg22_2_13Si_14Si_17Si"
-MUNA$Preg22_2_13Si_14Si_17Si <- factor(MUNA$Preg22_2_13Si_14Si_17Si)
-#Var_79
-colnames(MUNA)[79] <- "Preg22_3_13Si_14Si_17Si"
-MUNA$Preg22_3_13Si_14Si_17Si <- factor(MUNA$Preg22_3_13Si_14Si_17Si)
-#Var_80
-colnames(MUNA)[80] <- "Preg22_4_13Si_14Si_17Si"
-MUNA$Preg22_4_13Si_14Si_17Si <- factor(MUNA$Preg22_4_13Si_14Si_17Si)
-#Var_81
-colnames(MUNA)[81] <- "Preg22_5_13Si_14Si_17Si"
-MUNA$Preg22_5_13Si_14Si_17Si <- factor(MUNA$Preg22_5_13Si_14Si_17Si)
-#Var_82
-colnames(MUNA)[82] <- "Preg22_6_13Si_14Si_17Si"
-MUNA$Preg22_6_13Si_14Si_17Si <- factor(MUNA$Preg22_6_13Si_14Si_17Si)
-#Var_83
-colnames(MUNA)[83] <- "Preg22_7_13Si_14Si_17Si"
-MUNA$Preg22_7_13Si_14Si_17Si <- factor(MUNA$Preg22_7_13Si_14Si_17Si)
-#Var_84
-colnames(MUNA)[84] <- "Preg22_8_13Si_14Si_17Si"
-MUNA$Preg22_8_13Si_14Si_17Si <- factor(MUNA$Preg22_8_13Si_14Si_17Si)
-#Var_85
-colnames(MUNA)[85] <- "Preg22_9_13Si_14Si_17Si"
-MUNA$Preg22_9_13Si_14Si_17Si <- factor(MUNA$Preg22_9_13Si_14Si_17Si)
-#Var_86
-colnames(MUNA)[86] <- "Preg22_10_13Si_14Si_17Si"
-MUNA$Preg22_10_13Si_14Si_17Si <- factor(MUNA$Preg22_10_13Si_14Si_17Si)
-#Var_87
-colnames(MUNA)[87] <- "Preg22_Otro_13Si_14Si_17Si"
-MUNA$Preg22_Otro_13Si_14Si_17Si <- factor(MUNA$Preg22_Otro_13Si_14Si_17Si)
-
-
-```
-
+Los tipos de variables se iran cambiando de acuerdo vayamos avanzando en el informe.
 
 # Resumenes iniciales
+
 Pertenecen aca las variables creadas por el surveymonkey al usar la encuesta.
+
+## ID
+
+```{r}
+
+MUNA$Var_1 <- factor(MUNA$Var_1) 
+
+Tabla1 <- MUNA %>%  
+  count(Var_1) %>%
+  summarise(min = min(n),max = max(n))
+
+  kable(Tabla1, col.names = c("Mínimo", "Máximo"),
+        align = "ccc",
+        caption = "Tabla 1: Numero mínimo y maximo de ID")
+
+```
+
+Observamos que los identificadores no se repiten ya que cada ID le corresponde solo a un encuestador.
+
+## Aplicador
+
+```{r}
+
+MUNA$Var_3 <- factor(MUNA$Var_3)
+
+Tabla2 <- MUNA %>%
+  count(Var_3, sort = TRUE) %>%
+  mutate(porcentage = paste0(sprintf("%4.1f", n / sum(n) * 100), "%"), 
+         Var_3 = str_remove(Var_3, ".*_"), 
+         Var_3 = str_to_title(Var_3))
+
+kable(Tabla2, col.names = c("Encuestador", "N° de Encuestas", "% de Encuestas"),
+        align = "ccc",
+        caption = "Tabla 2: Resumen del total de encuestas procesadas por encuestador")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+Tabla2 %>% 
+    mutate(Var_3 = fct_inorder(Var_3), 
+         Var_3 = fct_rev(Var_3)) %>%
+  ggplot(mapping = aes(x = Var_3, y = n)) +
+  geom_col() +
+  geom_label(mapping = aes(label = porcentage), hjust = 1.1) +
+  labs(x = "Encuestadores", y = "Encuestas recopiladas", title = "Cantidad de encuestas recopiladas por encuestador", subtitle = "Barras(en unid), etiquetas(en %)", caption = "Elaboración propia") +
+  coord_flip() +
+  theme_solarized()
+
+```
+
+* El encuestador que aplicó más encuestas fue `r Tabla2$Var_3[1]` con `r Tabla2$n[1]` encuestas recopiladas que representa el `r Tabla2$porcentage[1]` del total.
+
+* El encuestador que aplicó menos encuestas fue `r Tabla2$Var_3[nrow(Tabla2)]` con `r Tabla2$n[nrow(Tabla2)]` encuestas recopiladas que representa el `r Tabla2$porcentage[nrow(Tabla2)]` del total.
+
+## Tiempo de recolección
+
+Se describira la hora que se recogió la encuesta, la hora que se finalizó y el tiempo en el que se demoran en terminar una encuesta.
+
+```{r}
+
+MUNA$Var_4 <- as.POSIXct(MUNA$Var_4)
+MUNA$Var_5 <- as.POSIXct(MUNA$Var_5)
+
+Tabla3 <- MUNA %>%
+  select(Var_4, Var_5) %>%
+  mutate(Dif = difftime(Var_5, Var_4, units = "mins"),
+         Dif = round(Dif, digits = 1)) %>%
+  arrange(desc(Dif))
+
+kable(rbind(head(Tabla3), tail(Tabla3)), col.names = c("Inicio de la encuesta", "Final de la encuesta", "Tiempo transcurrido"),
+        align = "ccc",
+        caption = "Tabla 3: Resumen del tiempo de inicio, final y de demora para aplicar la encuesta (6 mas rapidos y 6 mas lentos)")
+
+```
+
+
+```{r}
+
+ggplot(Tabla3, mapping = aes(x = Var_4, y = Dif)) + 
+  geom_point(color = "blue") +
+  geom_point(mapping = aes(x = Var_5), color = "red") +
+  geom_segment(mapping = aes(x = Var_4, xend = Var_5, y = Dif, yend = Dif)) +
+  geom_label(data = head(Tabla3, 1), mapping = aes(label = Dif), vjust = -0.1) +
+  geom_label(data = tail(Tabla3, 1), mapping = aes(label = Dif), vjust = -0.1) +
+  geom_hline(yintercept = median(Tabla3$Dif), color = "green") +
+  annotate("text", x = as.POSIXct("2021-08-15"), y = median(Tabla3$Dif) + 3, label = median(Tabla3$Dif), color = "green") +
+  labs(x = "Dia y Hora", y = "Tiempo de demora", title = "Inicio y fin de la encuesta", subtitle = "Segmentos que comprenden la duracion de la encuesta", caption = "elaboracion propia") +
+  theme_solarized()
+
+```
+
+* El tiempo máximo de demora en la encuesta es de `r max(Tabla3$Dif)`.
+* El tiempo medio de demora en la encuesta es de `r median(Tabla3$Dif)`.
+* El tiempo mínimo de demora en la encuesta es de `r min(Tabla3$Dif)`.
 
 # Preguntas de filtro
 Son las preguntas que se le debe de hacer para proseguir con la encuesta. Se de be tener puras afirmativas
