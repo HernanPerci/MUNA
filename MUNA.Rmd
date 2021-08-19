@@ -11,7 +11,7 @@ output:
 \listoftables
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 El Museo Nacional del Perú – MUNA [Pagina Web](https://muna.cultura.pe/) es una de las obras más emblemáticas del Estado Peruano realizada por el Ministerio de Cultura.
@@ -35,6 +35,8 @@ library(skimr)
 library(naniar)
 library(VIM)
 library(ggthemes)
+library(DescTools)
+
 ```
 
 
@@ -73,108 +75,506 @@ Los tipos de variables se iran cambiando de acuerdo vayamos avanzando en el info
 
 # Resumenes iniciales
 
-Pertenecen aca las variables creadas por el surveymonkey al usar la encuesta.
+Aqui corresponden las variables que dan informacion sobre el desempeño del encuestador.
 
-## ID
-
-```{r}
-
-MUNA$Var_1 <- factor(MUNA$Var_1) 
-
-Tabla1 <- MUNA %>%  
-  count(Var_1) %>%
-  summarise(min = min(n),max = max(n))
-
-  kable(Tabla1, col.names = c("Mínimo", "Máximo"),
-        align = "ccc",
-        caption = "Tabla 1: Numero mínimo y maximo de ID")
-
-```
-
-Observamos que los identificadores no se repiten ya que cada ID le corresponde solo a un encuestador.
-
-## Aplicador
+## Cantidad recopilada por encuestador
 
 ```{r}
 
 MUNA$Var_3 <- factor(MUNA$Var_3)
 
-Tabla2 <- MUNA %>%
-  count(Var_3, sort = TRUE) %>%
-  mutate(porcentage = paste0(sprintf("%4.1f", n / sum(n) * 100), "%"), 
-         Var_3 = str_remove(Var_3, ".*_"), 
-         Var_3 = str_to_title(Var_3))
+MUNA <- MUNA %>%
+  mutate(Zona = str_split(Var_3, "_\\d_", simplify = TRUE)[, 1],
+         Zona = str_split(Zona, "L", simplify = TRUE)[, 2],
+         Aplicador = str_split(Var_3, "_\\d_", simplify = TRUE)[, 2],
+         Aplicador = str_to_title(Aplicador))
 
-kable(Tabla2, col.names = c("Encuestador", "N° de Encuestas", "% de Encuestas"),
+Tabla1 <- MUNA %>%
+  count(Aplicador, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  rename(frecuencia = n)
+
+```
+
+
+```{r}
+
+kable(Tabla1, col.names = c("Encuestador", "N° de Encuestas", "% de Encuestas"),
         align = "ccc",
-        caption = "Tabla 2: Resumen del total de encuestas procesadas por encuestador")
+        caption = "Tabla 1: Resumen del total de encuestas procesadas por encuestador")
 
 ```
 
 
 ```{r, fig.width= 10, fig.height= 8}
 
-Tabla2 %>% 
-    mutate(Var_3 = fct_inorder(Var_3), 
-         Var_3 = fct_rev(Var_3)) %>%
-  ggplot(mapping = aes(x = Var_3, y = n)) +
-  geom_col() +
-  geom_label(mapping = aes(label = porcentage), hjust = 1.1) +
+Tabla1 %>% 
+    mutate(Aplicador = fct_inorder(Aplicador), 
+         Aplicador = fct_rev(Aplicador)) %>%
+  ggplot(mapping = aes(x = Aplicador, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = porcentaje), hjust = 1.1) +
   labs(x = "Encuestadores", y = "Encuestas recopiladas", title = "Cantidad de encuestas recopiladas por encuestador", subtitle = "Barras(en unid), etiquetas(en %)", caption = "Elaboración propia") +
   coord_flip() +
-  theme_solarized()
+  theme_few() +
+    scale_fill_gradient(low = 'lightblue', high = 'darkblue', space = 'Lab')
 
 ```
 
-* El encuestador que aplicó más encuestas fue `r Tabla2$Var_3[1]` con `r Tabla2$n[1]` encuestas recopiladas que representa el `r Tabla2$porcentage[1]` del total.
+* El encuestador que aplicó más encuestas fue `r Tabla1$Aplicador[1]` con `r Tabla1$n[1]` encuestas recopiladas que representa el `r Tabla1$porcentaje[1]` del total.
 
-* El encuestador que aplicó menos encuestas fue `r Tabla2$Var_3[nrow(Tabla2)]` con `r Tabla2$n[nrow(Tabla2)]` encuestas recopiladas que representa el `r Tabla2$porcentage[nrow(Tabla2)]` del total.
+* El encuestador que aplicó menos encuestas fue `r Tabla1$Aplicador[nrow(Tabla1)]` con `r Tabla1$n[nrow(Tabla1)]` encuestas recopiladas que representa el `r Tabla1$porcentaje[nrow(Tabla1)]` del total.
 
-## Tiempo de recolección
+## Tiempo de demora por encuestador
 
-Se describira la hora que se recogió la encuesta, la hora que se finalizó y el tiempo en el que se demoran en terminar una encuesta.
 
 ```{r}
 
 MUNA$Var_4 <- as.POSIXct(MUNA$Var_4)
 MUNA$Var_5 <- as.POSIXct(MUNA$Var_5)
 
-Tabla3 <- MUNA %>%
-  select(Var_4, Var_5) %>%
+MUNA <- MUNA %>%
   mutate(Dif = difftime(Var_5, Var_4, units = "mins"),
-         Dif = round(Dif, digits = 1)) %>%
-  arrange(desc(Dif))
+         Dif = round(Dif, digits = 1),
+         Dif = as.numeric(Dif))
 
-kable(rbind(head(Tabla3), tail(Tabla3)), col.names = c("Inicio de la encuesta", "Final de la encuesta", "Tiempo transcurrido"),
-        align = "ccc",
-        caption = "Tabla 3: Resumen del tiempo de inicio, final y de demora para aplicar la encuesta (6 mas rapidos y 6 mas lentos)")
+Tabla2 <- MUNA %>%
+  select(Zona, Aplicador, Dif) %>%
+  group_by(Aplicador) %>%
+  summarise(mediana = median(Dif)) %>%
+  ungroup() %>%
+  arrange(desc(mediana))
 
 ```
 
 
 ```{r}
 
-ggplot(Tabla3, mapping = aes(x = Var_4, y = Dif)) + 
-  geom_point(color = "blue") +
-  geom_point(mapping = aes(x = Var_5), color = "red") +
-  geom_segment(mapping = aes(x = Var_4, xend = Var_5, y = Dif, yend = Dif)) +
-  geom_label(data = head(Tabla3, 1), mapping = aes(label = Dif), vjust = -0.1) +
-  geom_label(data = tail(Tabla3, 1), mapping = aes(label = Dif), vjust = -0.1) +
-  geom_hline(yintercept = median(Tabla3$Dif), color = "green") +
-  annotate("text", x = as.POSIXct("2021-08-15"), y = median(Tabla3$Dif) + 3, label = median(Tabla3$Dif), color = "green") +
-  labs(x = "Dia y Hora", y = "Tiempo de demora", title = "Inicio y fin de la encuesta", subtitle = "Segmentos que comprenden la duracion de la encuesta", caption = "elaboracion propia") +
+kable(Tabla2, col.names = c("Encuestador", "Tiempo medio transcurrido (en minutos)"),
+        align = "ccc",
+        caption = "Tabla 2: Tiempo medio transcurrido (en minutos) por encuestador")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+ggplot(data = MUNA, aes(x = Aplicador, y = Dif, fill = Zona)) +
+  geom_boxplot() +
+  geom_hline(yintercept = median(MUNA$Dif), color = "red", linetype = "dotted") +
+  annotate("text", x = .6, y = median(MUNA$Dif) + 8, label = paste("mediana general =", median(MUNA$Dif), sep = ""), color = "red") +
+  coord_flip() +
+  labs(x = "Aplicador", y = "Tiempo de demora (minutos)", title = "Tiempos de demora en minutos por encuestador y tipo de zona de aplicación", subtitle = "Aplicador vs tiempo segun zona", caption = "Elaboracion propia") +
   theme_solarized()
 
 ```
 
-* El tiempo máximo de demora en la encuesta es de `r max(Tabla3$Dif)`.
-* El tiempo medio de demora en la encuesta es de `r median(Tabla3$Dif)`.
-* El tiempo mínimo de demora en la encuesta es de `r min(Tabla3$Dif)`.
+
+* El tiempo máximo de demora en la encuesta es de `r max(MUNA$Dif)`.
+* El tiempo medio de demora en la encuesta es de `r median(MUNA$Dif)`.
+* El tiempo mínimo de demora en la encuesta es de `r min(MUNA$Dif)`.
+
+
+```{r}
+
+LeveneTest(MUNA$Dif, MUNA$Aplicador)
+
+```
+
+
+Suponiendo que al menos la varianza de un grupo no es similar a las demas por la prueba de levene y que las distribuciones no se asemejan a la normal, entonces procedemos a contrastar el tiempo medio en procesar las encuesta por aplicador segun la prueba no parametrica de comparaciones multiples.
+
+```{r}
+
+kable(pairwise.wilcox.test(MUNA$Dif, MUNA$Aplicador, p.adjust.method = "bonf")$p.value)
+
+```
+
+Los p valor menor a 0.5 indican que la diferencia de medias entre los encuestadores respectivos es significante.
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+ggplot(data = MUNA, aes(x = Zona, y = Dif)) +
+  geom_boxplot() +
+  geom_hline(yintercept = median(MUNA$Dif), color = "red", linetype = "dotted") +
+  annotate("text", x = .6, y = median(MUNA$Dif) + 8, label = paste("mediana general =", median(MUNA$Dif), sep = ""), color = "red") +
+  coord_flip() +
+  labs(x = "Zona", y = "Tiempo de demora (minutos)", title = "Tiempos de demora en minutos por zona", subtitle = "zona vs tiempo", caption = "Elaboracion propia") +
+  theme_gdocs()
+
+```
+
+
+
+```{r}
+
+LeveneTest(MUNA$Dif, MUNA$Zona)
+
+```
+
+
+Suponiendo que al menos la varianza de un grupo no es similar a las demas por la prueba de levene y que las distribuciones no se asemejan a la normal, entonces procedemos a contrastar el tiempo medio en procesar las encuesta por zona segun la prueba no parametrica de comparaciones multiples.
+
+```{r}
+
+kable(pairwise.wilcox.test(MUNA$Dif, MUNA$Zona, p.adjust.method = "bonf")$p.value)
+
+```
+
+Los p valor menor a 0.5 indican que la diferencia de medias entre las zonas respectivas es significante.
+
 
 # Preguntas de filtro
-Son las preguntas que se le debe de hacer para proseguir con la encuesta. Se de be tener puras afirmativas
+
+Son las preguntas que se le debe de hacer para proseguir con la encuesta. Se debe tener puras afirmativas
 
 ## ¿Usted tiene hijos y/o hijas en edad escolar (6 a 17 años)?
+
+```{r}
+
+MUNA$Var_12 <- factor(MUNA$Var_12)
+
+Tabla3 <- MUNA %>%
+  select(Var_12) %>%
+  count(Var_12) %>%
+  rename(frecuencia = n)
+
+```
+
+
+```{r}
+
+kable(Tabla3, col.names = c("¿Usted tiene hijos y/o hijas en edad escolar (6 a 17 años)?" , "Frecuencia"), align = "cc", caption = "Tabla 3: Resumen de encuestados que tienen hijos en edad escolar(6 a 17)")
+
+```
+
+
+```{r}
+
+ggplot(Tabla3, mapping = aes(x = Var_12, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = frecuencia), vjust = 1) +
+  labs(x = "Opción", y = "N° de encuestados", title = "¿Usted tiene hijos y/o hijas \n en edad escolar (6 a 17 años)?", subtitle = "Todas deben ser afirmativas", caption = "Elaboracion propia") +
+  theme_hc()
+
+```
+
+Se confirma que existen `r Tabla3$n[1]` que tienen  hijos y/o hijas en edad escolar (6 a 17 años).
+
+## ¿Dónde vive actualmente?
+
+```{r}
+
+MUNA <- MUNA %>%
+  mutate(Var_13 = str_to_title(Var_13),
+         Var_13 = str_replace(Var_13, "Limq", "Lima"),
+         Var_13 = str_replace(Var_13, "Lina", "Lima"),
+         Var_13 = factor(Var_13),
+         Var_14 = str_to_title(Var_14),
+         Var_14 = factor(Var_14),
+         Var_15 = str_to_title(Var_15),
+         Var_15 = str_replace(Var_15, "Smp", "San Martín De Porres"),
+         Var_15 = str_replace(Var_15, "Villa Maria Del Triunfo", "Villa María Del Triunfo"),
+         Var_15 = str_replace(Var_15, "Chorrilos", "Chorrillos"),
+         Var_15 = factor(Var_15))
+
+Tabla4 <- MUNA %>%
+  select(Var_13:Var_15) %>%
+  group_by(Var_13, Var_14) %>%
+  count(Var_15) %>%
+  ungroup() %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  rename(frecuencia = n) %>%
+  arrange(desc(frecuencia))
+
+```
+
+
+```{r}
+
+kable(Tabla4, col.names = c("Departamento", "Provincia", "Distrito", "Frecuencia", "porcentaje"), align = "ccccc", caption = "Tabla 4: Distritos donde se realizo la encuesta")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+Tabla4 %>% 
+    mutate(Var_15 = fct_inorder(Var_15), 
+         Var_15 = fct_rev(Var_15)) %>%
+  ggplot(mapping = aes(x = Var_15, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = porcentaje), hjust = 1.1) +
+  labs(x = "Encuestadores", y = "Encuestas recopiladas", title = "Cantidad de encuestas recopiladas por encuestador", subtitle = "Barras(en unid), etiquetas(en %)", caption = "Elaboración propia") +
+  coord_flip() +
+  theme_igray() +
+  scale_fill_gradientn(colours = terrain.colors(10))
+
+```
+
+* La mayor parte de encuestados viven en el distrio de `r Tabla4$Var_15[1]` perteneciente al departamento de `r Tabla4$Var_13[1]` y provincia de `r Tabla4$Var_15[1]`con un total de `r Tabla4$n[1]` encuestas que represental el `r Tabla4$porcentaje[1]` del total de encuestas recopiladas.
+
+* La menor parte de encuestados viven en el distrio de `r Tabla4$Var_15[nrow(Tabla4)]` perteneciente al departamento de `r Tabla4$Var_13[nrow(Tabla4)]` y provincia de `r Tabla4$Var_15[nrow(Tabla4)]`con un total de `r Tabla4$n[nrow(Tabla4)]` encuestas que represental el `r Tabla4$porcentaje[nrow(Tabla4)]` del total de encuestas recopiladas.
+
+
+## ¿Que edad tiene usted ?
+
+```{r}
+
+MUNA$Var_16 <- as.integer(MUNA$Var_16)
+
+MUNA <- MUNA %>%
+  mutate(rango_edad = case_when(
+    Var_16 >= 18 & Var_16 <= 29 ~ "Joven [18, 29]",
+    Var_16 >= 30 & Var_16 <= 59 ~ "Adulto [30, 59]",
+    Var_16 >= 60 & Var_16 <= 100 ~ "Adulto Mayor [60, +>"
+  ),
+  rango_edad = factor(rango_edad, levels = c("Joven [18, 29]", "Adulto [30, 59]", "Adulto Mayor [60, +>")))
+
+Tabla5 <- MUNA %>%
+  select(Var_16, rango_edad) %>%
+  group_by(rango_edad) %>%
+  summarise(Media = round(mean(Var_16), 2),
+          Desv_est = round(sd(Var_16), 2),
+          Coef_var = paste0(sprintf("%4.1f", Desv_est / Media * 100), "%")) %>%
+  ungroup()
+
+```
+
+
+```{r}
+
+kable(Tabla5, col.names = c("Rango de edad del encuestado", "Media", "Desviacion estandar", "Coeficiente de variacion"), align = "cccc", caption = "Tabla 5: Estadisticas principales para la variable edad")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+  ggplot(MUNA, mapping = aes(x = Var_16, fill = rango_edad)) +
+  geom_bar(alpha = .5) +
+  annotate( "text", x = quantile(as.integer(MUNA$Var_16), probs = 0), y = 1, label = quantile(as.integer(MUNA$Var_16), probs = 0), vjust = -1, size = 4, color = "red") +
+  annotate( "text", x = quantile(as.integer(MUNA$Var_16), probs = .25), y = 1, label = quantile(as.integer(MUNA$Var_16), probs = .25), vjust = -1, size = 4, color = "red") +
+  annotate( "text", x = quantile(as.integer(MUNA$Var_16), probs = .5), y = 1, label = quantile(as.integer(MUNA$Var_16), probs = .5), vjust = -1, size = 4, color = "red") +
+  annotate( "text", x = quantile(as.integer(MUNA$Var_16), probs = .75), y = 1, label = quantile(as.integer(MUNA$Var_16), probs = .75), vjust = -1, size = 4, color = "red") +  
+  annotate( "text", x = quantile(as.integer(MUNA$Var_16), probs = 1), y = 1, label = quantile(as.integer(MUNA$Var_16), probs = 1), vjust = -1, size = 4, color = "red") +
+  labs(x = "Edad en años", y = "N° de encuestas", title = "Cantidad de encuestas recopiladas por edad", subtitle = "Barras(en unid)", caption = "Elaboración propia") +
+  theme_solarized()
+
+```
+
+* El encuestado de menor edad tiene `r quantile(as.integer(MUNA$Var_16), probs = 0)` años.
+* El 50% central de los encuestados tienen edades entre `r quantile(as.integer(MUNA$Var_16), probs = .25)` y `r quantile(as.integer(MUNA$Var_16), probs = .75)` años.
+* El encuestado de mayor edad tiene `r quantile(as.integer(MUNA$Var_16), probs = 1)` años.
+
+## ¿Cuál es su lengua materna?
+
+
+```{r}
+
+MUNA$Var_17 <- factor(MUNA$Var_17)
+MUNA$Var_18 <- factor(MUNA$Var_18)
+
+Tabla6 <- MUNA %>%
+  gather(key = "key", value = "value", c(Var_17, Var_18)) %>%
+  select(value) %>%
+  filter(!is.na(value), value != "Otra (especifique)") %>%
+  count(value, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  rename(frecuencia = n)
+
+```
+
+
+
+```{r}
+
+kable(Tabla6, col.names = c("¿Cuál es su lengua materna?" , "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 6: Frecuencia de la lengua materna que poseen los encuestados")
+
+```
+
+
+```{r}
+
+ggplot(Tabla6, mapping = aes(x = value, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = porcentaje), vjust = 1) +
+  labs(x = "Lengua materna", y = "N° de encuestados", title = "¿Cuál es su lengua materna?", subtitle = "Cantidad de encuestados por lengua materna", caption = "Elaboracion propia") +
+  theme_pander()
+
+```
+
+La mayor cantidad de encuestados tienen como lengua materna al `r Tabla6$value[1]` con un total de `r Tabla6$n[1]` que representa el `r Tabla6$porcentaje[1]` del total
+
+## ¿Domina alguna lengua además de la materna? 
+
+```{r}
+
+MUNA$Var_19 <- factor(MUNA$Var_19)
+
+Tabla7 <- MUNA %>%
+  select(Var_19) %>%
+  count(Var_19, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  rename(frecuencia = n)
+
+```
+
+
+```{r}
+
+kable(Tabla7, col.names = c("¿Domina alguna lengua además de la materna? ", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 7: Resumen de encuestados que dominan otra lengua")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+ggplot(Tabla7, mapping = aes(x = Var_19, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = porcentaje), vjust = 1) +
+  labs(x = "Opción", y = "N° de encuestados", title = "¿Domina alguna lengua además de la materna? ", subtitle = "Respuesta de tipo binaria", caption = "Elaboracion propia") +
+  theme_par()
+
+```
+
+
+`r Tabla7$Var_19[1]` domina otra lengua materna el `r Tabla7$porcentaje[1]` de los encuestados.
+
+
+## ¿Qué otra lengua domina?
+
+```{r}
+
+MUNA$Var_20 <- factor(MUNA$Var_20)
+MUNA$Var_21 <- factor(MUNA$Var_21)
+MUNA$Var_22 <- factor(MUNA$Var_22)
+MUNA$Var_23 <- factor(MUNA$Var_23)
+MUNA$Var_24 <- factor(MUNA$Var_24)
+MUNA$Var_25 <- factor(MUNA$Var_25)
+MUNA$Var_26 <- factor(MUNA$Var_26)
+MUNA$Var_27 <- factor(MUNA$Var_27)
+
+Tabla8 <- MUNA %>%
+  gather(key = "key", value = "value", c(Var_20:Var_27)) %>%
+  select(value) %>%
+  filter(!is.na(value)) %>%
+  count(value, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  rename(frecuencia = n)
+
+```
+
+
+
+```{r}
+
+kable(Tabla8, col.names = c("¿Qué otra lengua domina?" , "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 8: Frecuencia y porcentaje de la otra lengua materna que dominan los encuestados")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+Tabla8 %>% 
+    mutate(value = fct_inorder(value), 
+         value = fct_rev(value)) %>%
+ggplot(mapping = aes(x = value, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = porcentaje), vjust = 1) +
+  labs(x = "Segunda lengua dominante", y = "N° de encuestados", title = "¿Qué otra lengua domina?", subtitle = "Cantidad de encuestados segun otra lengua que domina", caption = "Elaboracion propia") +
+  coord_flip() +
+  theme_stata() +
+  scale_fill_gradient(low = "yellow", high = "red", na.value = NA)
+
+```
+
+
+El `r Tabla8$porcentaje[1]` de los encuestados que se les pregunto dijo que el idioma `r Tabla8$value[1]` es su otra lengua que domina.
+
+
+## Según las actividades  que realiza diariamente ¿Cuál es su ocupación actual?
+
+```{r}
+
+MUNA$Var_28 <- factor(MUNA$Var_28)
+MUNA$Var_29 <- factor(MUNA$Var_29)
+
+Tabla9 <- MUNA %>%
+  gather(key = "key", value = "value", c(Var_28, Var_29)) %>%
+  select(value) %>%
+  filter(!is.na(value), value != "Otra (por favor, especifique)") %>%
+  count(value, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  rename(frecuencia = n)
+
+```
+
+
+
+```{r}
+
+kable(Tabla9, col.names = c("Según las actividades  que realiza diariamente ¿Cuál es su ocupación actual?" , "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 9: Frecuencia y porcentaje de las ocupaciones actuales de los encuestados")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+Tabla9 %>% 
+    mutate(value = fct_inorder(value), 
+         value = fct_rev(value)) %>%
+ggplot(mapping = aes(x = value, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = porcentaje), vjust = 1) +
+  labs(x = "Ocupacion actual", y = "N° de encuestados", title = "Según las actividades  que realiza diariamente \n ¿Cuál es su ocupación actual?", subtitle = "Cantidad de encuestados segun su ocupacion actual", caption = "Elaboracion propia") +
+  coord_flip() +
+  theme_economist()
+
+```
+
+
+La mayoria de encuestados indican que su trabajo principal es de `r Tabla9$value[1]` y son `r Tabla9$frecuencia[1]` que representan el `r Tabla9$porcentaje[1]` del total de encuestados.
+
+
+## Por el tiempo que destina semanalmente a su trabajo ¿Cuál de las siguientes opciones lo define mejor?
+
+
+```{r}
+
+MUNA$Var_30 <- factor(MUNA$Var_30, levels = c("Tengo más de un trabajo a la vez", "Trabajador Part- Time (4 Horas x 6 dias o 24 horas semanales)", "Trabajador Middle- Time (6 Horas x 6 Dias o 36 horas semanales)", "Trabajador Full-Time (8 Horas x 6 dias o 48 horas semanales)"))
+
+Tabla10 <- MUNA %>%
+  select(Var_30) %>%
+  count(Var_30) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  rename(frecuencia = n)
+
+```
+
+
+```{r}
+
+kable(Tabla10, col.names = c("Por el tiempo que destina semanalmente a su trabajo ¿Cuál de las siguientes opciones lo define mejor?" , "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 9: Frecuencia y porcentaje de los horarios laborales")
+
+```
+
+
+```{r, fig.width= 10, fig.height= 8}
+
+ggplot(Tabla10, mapping = aes(x = Var_30, y = frecuencia)) +
+  geom_col(aes(fill = frecuencia)) +
+  geom_label(mapping = aes(label = porcentaje), vjust = 1) +
+  labs(x = "Tiempos destinados segun tipo", y = "N° de encuestados", title = "Por el tiempo que destina semanalmente a su trabajo \n ¿Cuál de las siguientes opciones lo define mejor?", subtitle = "Cantidad de encuestados segun horario laboral", caption = "Elaboracion propia") +
+  coord_flip() +
+  theme_solarized_2() +
+  scale_fill_gradientn(colours = terrain.colors(3))
+
+```
+
+
+La mayoria de los encuestados que respondieron dijeron que son `r Tabla10 %>% filter(!is.na(Var_30)) %>% arrange(desc(frecuencia)) %>% select(Var_30) %>% top_n(1)`. Ellos son `r Tabla10 %>% filter(!is.na(Var_30)) %>% arrange(desc(frecuencia)) %>% select(frecuencia) %>% top_n(1)` del total, el cual representa el `r Tabla10 %>% filter(!is.na(Var_30)) %>% arrange(desc(frecuencia)) %>% select(porcentaje) %>% top_n(1)` del total de encuestados.
 
 
 
