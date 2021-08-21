@@ -577,4 +577,13 @@ ggplot(Tabla10, mapping = aes(x = Var_30, y = frecuencia)) +
 La mayoria de los encuestados que respondieron dijeron que son `r Tabla10 %>% filter(!is.na(Var_30)) %>% arrange(desc(frecuencia)) %>% select(Var_30) %>% top_n(1)`. Ellos son `r Tabla10 %>% filter(!is.na(Var_30)) %>% arrange(desc(frecuencia)) %>% select(frecuencia) %>% top_n(1)` del total, el cual representa el `r Tabla10 %>% filter(!is.na(Var_30)) %>% arrange(desc(frecuencia)) %>% select(porcentaje) %>% top_n(1)` del total de encuestados.
 
 
+## Ocupacion segun tipo de horario
+
+
+```{r}
+
+  
+
+```
+
 

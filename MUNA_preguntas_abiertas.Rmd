@@ -1,0 +1,468 @@
+---
+title: "MUNA - Preguntas abiertas"
+author: "Hernan Perci Nuñez Palomino"
+date: "Última edición `r format(Sys.time(), '%d %B %Y')`"
+output: 
+    word_document:
+      reference_docx: "template.docx"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r librerias}
+
+library(haven)
+library(tidyverse)
+library(knitr)
+library(skimr)
+library(VIM)
+
+```
+
+
+# Base de datos
+
+
+```{r}
+
+Data_Hogar <- read_sav("Data_Hogar.sav")
+
+```
+
+
+# ¿Dónde vive actualmente?
+
+## Consistencia de respuestas
+
+```{r}
+
+Data_Hogar <- Data_Hogar %>%
+  mutate(q0003_0001 = str_to_title(q0003_0001),
+         q0003_0001 = str_replace(q0003_0001, "Limq", "Lima"),
+         q0003_0001 = str_replace(q0003_0001, "Lina", "Lima"),
+         q0003_0001 = str_replace(q0003_0001, "Ics", "Ica"),
+         q0003_0001 = ifelse(q0003_0001 == "", NA, q0003_0001),
+         q0003_0002 = str_to_title(q0003_0002),
+         q0003_0003 = str_to_title(q0003_0003),
+         q0003_0003 = str_replace(q0003_0003, "Smp", "San Martín De Porres"),
+         q0003_0003 = str_replace(q0003_0003, "Villa Maria Del Triunfo", "Villa María Del Triunfo"),
+         q0003_0003 = str_replace(q0003_0003, "Chorrilos", "Chorrillos"),
+         q0003_0003 = str_replace(q0003_0003, "Ics", "Ica"),
+         q0003_0003 = str_replace(q0003_0003, "San Juan De Lurignacho", "San Juan De Lurigancho"),
+         q0003_0003 = str_replace(q0003_0003, "Lurín", "Lurin"),
+         q0003_0003 = str_replace(q0003_0003, "San Martin De Porres", "San Martín De Porres"))
+
+
+```
+
+
+## Imputacion de respuestas
+
+```{r}
+
+Data_Hogar <- Data_Hogar %>%
+  hotdeck(variable = "q0003_0001", domain_var = "q0003_0002")
+
+```
+
+
+## Tabla resumen
+
+```{r}
+
+Data_Hogar %>%
+  select(q0003_0001:q0003_0003) %>%
+  group_by(q0003_0001, q0003_0002, q0003_0003) %>%
+  count(q0003_0003, sort = TRUE) %>%
+  ungroup() %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Departamento", "Provincia", "Distrito", "Frecuencia", "porcentaje"), align = "cccc", caption = "Tabla 1: ¿Dónde vive actualmente?")
+
+```
+
+
+# ¿Cual es su otra lengua materna?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0005, q0005_other) %>%
+  filter(q0005 == 0) %>%
+  count(q0005_other) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Lengua", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 2: ¿Cual es su otra lengua materna?")
+
+```
+
+
+# ¿Que otra lengua domina?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0007_0008, q0007_other) %>%
+  filter(q0007_0008 == 1) %>%
+  count(q0007_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Lengua", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 3: ¿Que otra lengua domina?")
+
+```
+
+
+# ¿Cual es su ocupacion actual?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0008, q0008_other) %>%
+  filter(q0008 == 0) %>%
+  count(q0008_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Ocupacion", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 4: ¿Cual es su ocupacion actual?")
+
+```
+
+
+# Por tu autoidentificación de género te consideras:
+
+```{r}
+
+Data_Hogar %>%
+  select(q0011, q0011_other) %>%
+  filter(q0011 == 0 | q0011 == 4) %>%
+  count(q0011_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Género", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 5: Por tu autoidentificación de género te consideras:")
+
+```
+
+
+# Por sus costumbres y sus antepasados usted se considera:
+
+```{r}
+
+Data_Hogar %>%
+  select(q0012, q0012_other) %>%
+  filter(q0012 == 0 | q0012 == 9) %>%
+  count(q0012_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Se considera", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 6: Por sus costumbres y sus antepasados usted se considera:")
+
+```
+
+
+# ¿Qué te motiva a visitarlos?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0016_0011, q0016_other) %>%
+  filter(q0016_0011 == 1) %>%
+  count(q0016_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Motivación", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 7: ¿Qué te motiva a visitarlos?")
+
+```
+
+
+# ¿Qué no le gustó de ellos?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0017_0007, q0017_other) %>%
+  filter(q0017_0007 == 1) %>%
+  count(q0017_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Respuesta", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 8: ¿Qué no le gustó de ellos?")
+
+```
+
+
+# ¿Qué no le gusta de ellos?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0018_0006, q0018_other) %>%
+  filter(q0018_0006 == 1) %>%
+  count(q0018_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Respuesta", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 9: ¿Qué no le gusta de ellos?")
+
+```
+
+
+# ¿Qué otro tipo de grupo fue?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0025_0004, q0025_other) %>%
+  filter(q0025_0004 == 1) %>%
+  count(q0025_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Grupo", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 10: ¿Qué otro tipo de grupo fue?")
+
+```
+
+
+# ¿Cual es su otro problema que ha experimentado o que encuentra en la actualidad durante su visita a un museo?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0026_0011, q0026_other) %>%
+  filter(q0026_0011 == 1) %>%
+  count(q0026_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Problema", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 11: ¿Cual es su otro problema que ha experimentado o que encuentra en la actualidad durante su visita a un museo?")
+
+```
+
+
+# ¿Qué tipo de información buscó?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0028_0008, q0028_other) %>%
+  filter(q0028_0008 == 1) %>%
+  count(q0028_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Información", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 12: ¿Qué tipo de información buscó?")
+
+```
+
+
+# ¿Qué otras redes sociales utiliza frecuentemente ?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0030_0006, q0030_other) %>%
+  filter(q0030_0006 == 1) %>%
+  mutate(q0030_other = str_replace(q0030_other, "WhatsApp", "Whatsapp"),
+         q0030_other = str_replace(q0030_other, "whatsapp", "Whatsapp"),
+         q0030_other = str_replace(q0030_other, "Wapshat", "Whatsapp"),
+         q0030_other = str_replace(q0030_other, "Wasap", "Whatsapp"),
+         q0030_other = str_replace(q0030_other, "Solo Whatsapp", "Whatsapp"),
+         q0030_other = str_replace(q0030_other, "Wasat", "Whatsapp"),
+         q0030_other = str_replace(q0030_other, "Whasapp", "Whatsapp"),
+         q0030_other = str_replace(q0030_other, "Linkedin", "LinkedIn"),
+         q0030_other = str_replace(q0030_other, "Twuiter", "Twitter"),
+         q0030_other = str_replace(q0030_other, "twiter", "Twitter"),
+         q0030_other = str_replace(q0030_other, "Twiter", "Twitter")) %>%
+  count(q0030_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Redes sociales", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 13: ¿Qué otras redes sociales utiliza frecuentemente ?")
+
+```
+
+
+
+# ¿Por que no iría a un museo actualmente?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0033, q0034) %>%
+  filter(q0033 == 2) %>%
+  count(q0034, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Razon", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 14: ¿Por que no iría a un museo actualmente?")
+
+```
+
+
+# ¿Qué museo visitaste virtualmente?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0035, q0036) %>%
+  filter(q0035 == 1) %>%
+  mutate(q0036 = str_replace(q0036, "no recuerda", "No recuerdo"),
+         q0036 = str_replace(q0036, "No me acuerdo", "No recuerdo"),
+         q0036 = str_replace(q0036, "No precisa", "No recuerdo"),
+         q0036 = str_replace(q0036, "No recuerda", "No recuerdo"),
+         q0036 = str_replace(q0036, "Centro de lima", "Centro de Lima"),
+         q0036 = str_replace(q0036, "De centro de lima", "Centro de Lima"),
+         q0036 = str_replace(q0036, "Museo del Señor de Sipan", "Museo Tumbas Reales de Sipán"),
+         q0036 = str_replace(q0036, "Museo Sipan", "Museo Tumbas Reales de Sipán"),
+         q0036 = str_replace(q0036, "Señor de Sipan", "Museo Tumbas Reales de Sipán")) %>% 
+  count(q0036, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Museo", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 15: ¿Qué museo visitaste virtualmente?")
+
+```
+
+
+# ¿Qué otros espacios culturales visita o ha visitado con frecuencia?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0037_0006, q0037_other) %>%
+  filter(q0037_0006 == 1) %>%
+  count(q0037_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Espacio cultural", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 16: ¿Qué otros espacios culturales visita o ha visitado con frecuencia?")
+
+```
+
+
+## ¿Por cual de los siguientes medios la vio?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0040_0010, q0040_other) %>%
+  filter(q0040_0010 == 1) %>%
+  count(q0040_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Medio", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 17: ¿Por cual de los siguientes medios la vio?")
+
+
+```
+
+
+# ¿A que museo pertenecía dicha publicidad?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0041) %>%
+  mutate(q0041 = ifelse(q0041 == "", NA, q0041)) %>%
+  filter(!is.na(q0041)) %>%
+  count(q0041, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Museo", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 18: ¿A que museo pertenecía dicha publicidad?")
+
+```
+
+
+# ¿Por cuales de los siguientes medios te gustaría hacerlo?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0043_0010, q0043_other) %>%
+  filter(q0043_0010 == 1) %>%
+  count(q0043_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Medio", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 19: ¿Por cuales de los siguientes medios te gustaría hacerlo?")
+
+```
+
+
+# ¿Cuál es otra principal razon por las que Sí visitaría el MUNA?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0045_0013, q0045_other) %>%
+  filter(q0045_0013 == 1) %>%
+  count(q0045_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Razon", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 20: ¿Cuál es otra principal razon por las que Sí visitaría el MUNA?")
+
+```
+
+
+# ¿Cuál es otra razon principal por las que NO visitaría el MUNA?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0048_0007, q0048_other) %>%
+  filter(q0048_0007 == 1) %>%
+  count(q0048_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Razon", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 21: ¿Cuál es otra razon principal por las que NO visitaría el MUNA?")
+
+```
+
+
+# ¿Por qué no lo haria?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0050) %>%
+  mutate(q0050 = ifelse(q0050 == "", NA, q0050)) %>%
+  filter(!is.na(q0050)) %>%
+  count(q0050, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Razon", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 22: ¿Por qué no lo haria?")
+
+```
+
+
+# ¿Cuál es otro servicio importante que esperaría encontrar en su visita a un museo?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0051_0009, q0051_other) %>%
+  filter(q0051_0009 == 1) %>%
+  count(q0051_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Servicio", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 23: ¿Cuál es otro servicio importante que esperaría encontrar en su visita a un museo?")
+
+```
+
+
+# ¿Qué tipo de actividades culturales le gustaría encontrar al llegar al MUNA?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0052_0006, q0052_other) %>%
+  filter(q0052_0006 == 1) %>%
+  count(q0052_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Actividad", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 24: ¿Qué tipo de actividades culturales le gustaría encontrar al llegar al MUNA?")
+
+```
+
+
+# ¿Qué otro tipo de contenidos debe mostrar el museo en sus exposiciones?
+
+```{r}
+
+Data_Hogar %>%
+  select(q0054_0010, q0054_other) %>%
+  filter(q0054_0010 == 1) %>%
+  count(q0054_other, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Contenido", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 25: ¿Qué otro tipo de contenidos debe mostrar el museo en sus exposiciones?")
+
+```
+
+
+# Indique tres palabras que en su opinión definan el Museo Nacional del Perú
+
+```{r}
+
+Data_Hogar %>%
+  select(q0058_0001:q0058_0003) %>%
+  gather(key = "key", value = "value") %>%
+  mutate(value = ifelse(value == "", NA, value)) %>%
+  filter(!is.na(value)) %>%
+  mutate(value = str_to_title(value)) %>%
+  count(value, sort = TRUE) %>%
+  mutate(porcentaje = paste0(sprintf("%4.1f", n / sum(n) * 100), "%")) %>%
+  kable(col.names = c("Contenido", "Frecuencia", "porcentaje"), align = "ccc", caption = "Tabla 26: Indique tres palabras que en su opinión definan el Museo Nacional del Perú")
+
+```
+
+
+
+
+
+
+
